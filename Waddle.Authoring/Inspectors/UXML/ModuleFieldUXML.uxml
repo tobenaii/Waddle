@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row;">
+        <ui:TextField picking-mode="Ignore" value="filler text" binding-path="Name" name="FieldName" style="width: 50%;" />
+        <uie:ObjectField binding-path="FieldType" style="flex-grow: 1;" />
+    </ui:VisualElement>
+</ui:UXML>
