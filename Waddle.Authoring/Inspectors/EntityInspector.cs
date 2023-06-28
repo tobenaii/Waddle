@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -6,52 +7,63 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Search;
 using UnityEngine.UIElements;
+using Waddle.Authoring.Registry;
 
 namespace Waddle.Authoring.Inspectors
 {
     [CustomEditor(typeof(Entity))]
     public class EntityInspector : Editor
     {
-        public override bool UseDefaultMargins() => false;
-
-        [SerializeField] private VisualTreeAsset _entityModuleContainer;
-
+        [SerializeField] VisualTreeAsset _editorAsset;
+        [SerializeField] VisualTreeAsset _itemAsset;
+        
         public override VisualElement CreateInspectorGUI()
         {
-            var root = new VisualElement();
-
-            var modulesProperty = serializedObject.FindProperty("_modules");
-            for (int i = 0; i < modulesProperty.arraySize; i++)
+            var entity = (Entity)target;
+            var root = _editorAsset.CloneTree();
+            var listView = root.Q<ListView>();
+            listView.Q<Button>("unity-list-view__add-button").clickable = new Clickable(OnAdd);
+            listView.itemsRemoved += OnRemoved;
+            listView.makeItem = _itemAsset.CloneTree;
+            listView.bindItem = (element, moduleIndex) =>
             {
-                var moduleProperty = modulesProperty.GetArrayElementAtIndex(i);
-                
-                var moduleContainer = _entityModuleContainer.CloneTree(moduleProperty.propertyPath);
-
-                var foldout = moduleContainer.Q<Foldout>();
-                foldout.text = moduleProperty.FindPropertyRelative("Module").objectReferenceValue.name;
-
+                var fieldList = element.Q<ListView>();
+                var moduleProperty = serializedObject.FindProperty("_modules").GetArrayElementAtIndex(moduleIndex);
                 var fieldsProperty = moduleProperty.FindPropertyRelative("Fields");
-                var fieldsContainer = new VisualElement();
-                for (int s = 0; s < fieldsProperty.arraySize; s++)
+                fieldList.itemsSource = entity.Modules[moduleIndex].Fields;
+                fieldList.headerTitle = moduleProperty.FindPropertyRelative("Module").objectReferenceValue.name;
+                fieldList.makeItem = () => new VisualElement();
+                fieldList.bindItem = (visualElement, fieldIndex) =>
                 {
-                    var fieldContainer = new VisualElement();
-                    DrawField(fieldContainer, new SerializedObject(fieldsProperty.GetArrayElementAtIndex(s).objectReferenceValue));
-                    fieldsContainer.Add(fieldContainer);
-                }
-                foldout.Add(fieldsContainer);
-                root.Add(moduleContainer);
-            }
-
-            var addModuleButton = new Button(() =>
-            {
-                OpenModuleSearchWindow();
-            })
-            {
-                text = "Add Module",
+                    visualElement.Clear();
+                    var field = new SerializedObject(fieldsProperty.GetArrayElementAtIndex(fieldIndex).objectReferenceValue);
+                    InspectorElement.FillDefaultInspector(visualElement, field, this);
+                    visualElement.RemoveAt(0);
+                    if (visualElement.childCount == 1)
+                    {
+                        visualElement[0].Q<PropertyField>().label = field.targetObject.name;
+                    }
+                    visualElement.Bind(field);
+                };
             };
-            root.Add(addModuleButton);
             return root;
         }
+
+        private void OnAdd()
+        {
+            OpenModuleSearchWindow();
+        }
+        
+        private void OnRemoved(IEnumerable<int> indices)
+        {
+            var entity = (Entity)target;
+            foreach (var index in indices)
+            {
+                ModuleRegistry.DeregisterEntityFromModule(entity, entity.Modules[index].Module);
+            }
+        }
+
+
 
         private void OpenModuleSearchWindow()
         {
@@ -64,11 +76,9 @@ namespace Waddle.Authoring.Inspectors
                 hideAllGroup = true,
                 flags = SearchViewFlags.Borderless | 
                         SearchViewFlags.CompactView | 
-                        SearchViewFlags.DisableQueryHelpers | 
                         SearchViewFlags.DisableInspectorPreview | 
                         SearchViewFlags.DisableBuilderModeToggle |
                         SearchViewFlags.DisableSavedSearchQuery |
-                        SearchViewFlags.DisableNoResultTips |
                         SearchViewFlags.NoIndexing
             });
             window.position = new Rect(GUIUtility.GUIToScreenPoint(Event.current.mousePosition), new Vector2(200, 400));
@@ -82,6 +92,7 @@ namespace Waddle.Authoring.Inspectors
             var moduleInstance = entity.AddModuleInstance();
             moduleInstance.Module = (Module)module;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(entity));
+            ModuleRegistry.RegisterEntityWithModule(entity, moduleInstance.Module);
             Repaint();
         }
 
@@ -109,36 +120,6 @@ namespace Waddle.Authoring.Inspectors
                 fetchPreview = (_, _, _, _) => (Texture2D)EditorGUIUtility.IconContent("d_ScriptableObject Icon").image,
                 toObject = (item, _) => AssetDatabase.LoadMainAssetAtPath(item.id),
             };
-        }
-
-        private static void DrawField(VisualElement container, SerializedObject serializedObject)
-        {
-            var foldout = new Foldout();
-            foldout.text = serializedObject.targetObject.name;
-            var property = serializedObject.GetIterator();
-            if (!property.NextVisible(true)) return; // Expand first child.
-            do
-            {
-                if (property.propertyPath is "m_Script" or "ID")
-                {
-                    continue;
-                }
-
-                var field = new PropertyField(property)
-                {
-                    name = "PropertyField:" + property.propertyPath
-                };
-
-
-                if (property.propertyPath == "m_Script" && serializedObject.targetObject != null)
-                {
-                    field.SetEnabled(false);
-                }
-
-                foldout.Add(field);
-            } while (property.NextVisible(false));
-            container.Bind(serializedObject);
-            container.Add(foldout);
         }
     }
 }

@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
-using UnityEngine.Localization;
 
 namespace Waddle.Authoring.Fields
 {
-    public class TextField : Field<long>
+    public class TextField : Field<string>
     {
-        [SerializeField] private LocalizedString _localizedString;
-        public override long Value => _localizedString.TableEntryReference;
+        [SerializeField] private string _string;
+        public override string Value => _string;
     }
 }

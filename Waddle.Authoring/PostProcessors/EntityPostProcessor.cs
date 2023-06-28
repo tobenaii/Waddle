@@ -1,7 +1,6 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Waddle.Authoring.Registry;
 
 namespace Waddle.Authoring.PostProcessors
 {

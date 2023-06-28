@@ -1,0 +1,3 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:ListView virtualization-method="DynamicHeight" reorderable="false" reorder-mode="Simple" picking-mode="Ignore" focusable="true" show-alternating-row-backgrounds="None" show-add-remove-footer="false" show-foldout-header="true" horizontal-scrolling="false" tabindex="0" show-bound-collection-size="false" binding-path="_modules" show-border="true" selection-type="None" />
+</ui:UXML>

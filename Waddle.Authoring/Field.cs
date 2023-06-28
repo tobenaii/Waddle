@@ -4,7 +4,7 @@ namespace Waddle.Authoring
 {
     public abstract class Field : ScriptableObject
     {
-        public string ID;
+        [HideInInspector] public string ID;
     }
     
     public abstract class Field<T> : Field

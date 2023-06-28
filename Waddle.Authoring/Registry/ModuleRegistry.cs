@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace Waddle.Authoring.Registry
 {
@@ -16,16 +17,19 @@ namespace Waddle.Authoring.Registry
 
         private static string RegistryPath => Path.Combine(LibraryPath, "ModuleRegistry.json");
 
+        private static FileSystemWatcher _watcher;
+
         static ModuleRegistry()
         {
-            AssemblyReloadEvents.beforeAssemblyReload += InitialiseRegistry;
-            AssemblyReloadEvents.beforeAssemblyReload += SaveRegistry;
             AssemblyReloadEvents.afterAssemblyReload += LoadRegistry;
         }
         
         static void InitialiseRegistry()
         {
-            if (File.Exists(RegistryPath)) return;
+            if (!Directory.Exists(LibraryPath))
+            {
+                Directory.CreateDirectory(LibraryPath);
+            }
             
             File.Create(RegistryPath).Dispose();
             _moduleEntityMap = new Dictionary<string, List<string>>();
@@ -56,13 +60,39 @@ namespace Waddle.Authoring.Registry
 
         static void LoadRegistry()
         {
+            if (!File.Exists(RegistryPath))
+            {
+                InitialiseRegistry();
+                return;
+            }
             string json = File.ReadAllText(RegistryPath);
             _moduleEntityMap = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(json);
         }
 
         public static IEnumerable<string> GetEntitiesWithModule(string moduleGuid)
         {
-            return _moduleEntityMap[moduleGuid];
+            return _moduleEntityMap.TryGetValue(moduleGuid, out var entities) ? entities : Enumerable.Empty<string>();
+        }
+
+        public static void RegisterEntityWithModule(Entity entity, Module module)
+        {
+            var entityGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(entity));
+            var moduleGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module));
+            if (!_moduleEntityMap.TryGetValue(moduleGuid, out var entityGuids))
+            {
+                entityGuids = new List<string>();
+                _moduleEntityMap.Add(moduleGuid, entityGuids);
+            }
+            entityGuids.Add(entityGuid);
+            SaveRegistry();
+        }
+
+        public static void DeregisterEntityFromModule(Entity entity, Module module)
+        {
+            var entityGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(entity));
+            var moduleGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module));
+            _moduleEntityMap[moduleGuid].Remove(entityGuid);
+            SaveRegistry();
         }
     }
 }

@@ -4,7 +4,9 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - _entityModuleContainer: {fileID: 9197481963319205126, guid: 40196e0449048f44783043b7b00ce238,
+  - _editorAsset: {fileID: 9197481963319205126, guid: 40196e0449048f44783043b7b00ce238,
+      type: 3}
+  - _itemAsset: {fileID: 9197481963319205126, guid: f447ebb547adb8e49a5b11edd5a3f415,
       type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

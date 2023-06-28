@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using Mono.Cecil;
-using UnityEditor;
 using UnityEngine;
 
 namespace Waddle.Authoring
@@ -17,7 +15,7 @@ namespace Waddle.Authoring
 
         [SerializeField] private List<ModuleInstance> _modules;
 
-        public IEnumerable<ModuleInstance> Modules => _modules;
+        public List<ModuleInstance> Modules => _modules;
 
         public ModuleInstance AddModuleInstance()
         {
