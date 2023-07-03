@@ -15,14 +15,9 @@ namespace Waddle.Authoring.PostProcessors
                 var moduleGuid = AssetDatabase.AssetPathToGUID(assetPath);
                 foreach (var entityGuid in ModuleRegistry.GetEntitiesWithModule(moduleGuid))
                 {
-                    Process(AssetDatabase.GUIDToAssetPath(entityGuid));
+                    AssetDatabase.ImportAsset(AssetDatabase.GUIDToAssetPath(entityGuid));
                 }
             }
-        }
-        
-        private static void Process(string assetPath)
-        {
-            AssetDatabase.ImportAsset(assetPath);
         }
     }
 }

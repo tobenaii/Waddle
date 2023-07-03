@@ -1,6 +1,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Waddle.Authoring.Registry;
 
 namespace Waddle.Authoring.PostProcessors
 {
@@ -55,6 +56,7 @@ namespace Waddle.Authoring.PostProcessors
                     moduleInstance.Fields.Remove(entityField);
                 }
             }
+            ModuleRegistry.UpdateEntityWithModule(entity);
         }
     }
 }

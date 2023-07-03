@@ -22,48 +22,31 @@ namespace Waddle.Authoring.Inspectors
             var entity = (Entity)target;
             var root = _editorAsset.CloneTree();
             var listView = root.Q<ListView>();
-            listView.Q<Button>("unity-list-view__add-button").clickable = new Clickable(OnAdd);
-            listView.itemsRemoved += OnRemoved;
+            listView.Q<Button>("unity-list-view__add-button").clickable = new Clickable(OpenModuleSearchWindow);
             listView.makeItem = _itemAsset.CloneTree;
             listView.bindItem = (element, moduleIndex) =>
             {
-                var fieldList = element.Q<ListView>();
+                var fieldList = element.Q<Foldout>();
+                fieldList.Clear();
                 var moduleProperty = serializedObject.FindProperty("_modules").GetArrayElementAtIndex(moduleIndex);
                 var fieldsProperty = moduleProperty.FindPropertyRelative("Fields");
-                fieldList.itemsSource = entity.Modules[moduleIndex].Fields;
-                fieldList.headerTitle = moduleProperty.FindPropertyRelative("Module").objectReferenceValue.name;
-                fieldList.makeItem = () => new VisualElement();
-                fieldList.bindItem = (visualElement, fieldIndex) =>
+                for (int i = 0; i < fieldsProperty.arraySize; i++)
                 {
-                    visualElement.Clear();
-                    var field = new SerializedObject(fieldsProperty.GetArrayElementAtIndex(fieldIndex).objectReferenceValue);
-                    InspectorElement.FillDefaultInspector(visualElement, field, this);
-                    visualElement.RemoveAt(0);
-                    if (visualElement.childCount == 1)
+                    var fieldRoot = new VisualElement();
+                    var field = new SerializedObject(fieldsProperty.GetArrayElementAtIndex(i).objectReferenceValue);
+                    InspectorElement.FillDefaultInspector(fieldRoot, field, this);
+                    fieldRoot.RemoveAt(0);
+                    if (fieldRoot.childCount == 1)
                     {
-                        visualElement[0].Q<PropertyField>().label = field.targetObject.name;
+                        fieldRoot[0].Q<PropertyField>().label = field.targetObject.name;
                     }
-                    visualElement.Bind(field);
-                };
+                    fieldRoot.Bind(field);
+                    fieldList.Add(fieldRoot);
+                }
+                fieldList.text = moduleProperty.FindPropertyRelative("Module").objectReferenceValue.name;
             };
             return root;
         }
-
-        private void OnAdd()
-        {
-            OpenModuleSearchWindow();
-        }
-        
-        private void OnRemoved(IEnumerable<int> indices)
-        {
-            var entity = (Entity)target;
-            foreach (var index in indices)
-            {
-                ModuleRegistry.DeregisterEntityFromModule(entity, entity.Modules[index].Module);
-            }
-        }
-
-
 
         private void OpenModuleSearchWindow()
         {
@@ -92,7 +75,6 @@ namespace Waddle.Authoring.Inspectors
             var moduleInstance = entity.AddModuleInstance();
             moduleInstance.Module = (Module)module;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(entity));
-            ModuleRegistry.RegisterEntityWithModule(entity, moduleInstance.Module);
             Repaint();
         }
 
