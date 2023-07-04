@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Waddle/Waddle.Authoring/Inspectors/UXML/EntityModule.uss?fileID=7433441132597879392&amp;guid=5efb8c82989c7bd4abf210471824d634&amp;type=3#EntityModule" />
-    <ui:Foldout text="Foldout" name="Foldout" picking-mode="Ignore" style="color: rgb(255, 255, 255); display: flex; padding-bottom: 5px;">
+    <Style src="project://database/Assets/Waddle/Waddle.Authoring/Inspectors/USS/EntityModule.uss?fileID=7433441132597879392&amp;guid=5efb8c82989c7bd4abf210471824d634&amp;type=3#EntityModule" />
+    <ui:Foldout text="Foldout" name="Foldout" picking-mode="Ignore" style="color: rgb(255, 255, 255); display: flex;">
         <ui:VisualElement name="FieldsRoot" picking-mode="Ignore" style="background-color: rgba(0, 0, 0, 0); flex-grow: 0;" />
     </ui:Foldout>
 </ui:UXML>
