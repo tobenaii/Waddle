@@ -16,20 +16,25 @@ namespace Waddle.Authoring.Inspectors
     {
         [SerializeField] VisualTreeAsset _editorAsset;
         [SerializeField] VisualTreeAsset _itemAsset;
-        
+
+        public override bool UseDefaultMargins() => false;
         public override VisualElement CreateInspectorGUI()
         {
-            var entity = (Entity)target;
             var root = _editorAsset.CloneTree();
             var listView = root.Q<ListView>();
+            listView.itemsSource = ((Entity)target).Modules;
             listView.Q<Button>("unity-list-view__add-button").clickable = new Clickable(OpenModuleSearchWindow);
             listView.makeItem = _itemAsset.CloneTree;
             listView.bindItem = (element, moduleIndex) =>
             {
-                var fieldList = element.Q<Foldout>();
-                fieldList.Clear();
                 var moduleProperty = serializedObject.FindProperty("_modules").GetArrayElementAtIndex(moduleIndex);
+                
+                var fieldList = element.Q<Foldout>();
+                fieldList.text = ObjectNames.NicifyVariableName(moduleProperty.FindPropertyRelative("Module").objectReferenceValue.name);
+                
                 var fieldsProperty = moduleProperty.FindPropertyRelative("Fields");
+                var fieldsRoot = fieldList.Q("FieldsRoot");
+                fieldsRoot.Clear();
                 for (int i = 0; i < fieldsProperty.arraySize; i++)
                 {
                     var fieldRoot = new VisualElement();
@@ -41,9 +46,8 @@ namespace Waddle.Authoring.Inspectors
                         fieldRoot[0].Q<PropertyField>().label = field.targetObject.name;
                     }
                     fieldRoot.Bind(field);
-                    fieldList.Add(fieldRoot);
+                    fieldsRoot.Add(fieldRoot);
                 }
-                fieldList.text = moduleProperty.FindPropertyRelative("Module").objectReferenceValue.name;
             };
             return root;
         }

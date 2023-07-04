@@ -1,3 +1,4 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:ListView virtualization-method="DynamicHeight" reorderable="true" reorder-mode="Animated" focusable="true" show-alternating-row-backgrounds="ContentOnly" show-add-remove-footer="true" show-foldout-header="false" horizontal-scrolling="false" tabindex="0" show-bound-collection-size="false" binding-path="_modules" selection-type="None" />
+    <Style src="project://database/Assets/Waddle/Waddle.Authoring/Inspectors/UXML/EntityInspector.uss?fileID=7433441132597879392&amp;guid=e9ed6ea5a25665c40bcf8cf1ad6c0abf&amp;type=3#EntityInspector" />
+    <ui:ListView virtualization-method="DynamicHeight" show-add-remove-footer="true" selection-type="None" reorderable="false" reorder-mode="Animated" show-bound-collection-size="false" show-border="false" focusable="true" usage-hints="-1" binding-path="_modules" />
 </ui:UXML>
