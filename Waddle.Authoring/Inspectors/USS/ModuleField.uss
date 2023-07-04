@@ -1,0 +1,4 @@
+.unity-base-popup-field__arrow {
+    display: none;
+    visibility: hidden;
+}

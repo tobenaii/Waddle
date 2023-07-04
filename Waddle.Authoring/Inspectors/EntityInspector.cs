@@ -77,12 +77,12 @@ namespace Waddle.Authoring.Inspectors
             searchWindow.Items = AssetDatabase.FindAssets($"t:{type.Namespace}.{type.Name}").Select(guid =>
                 new SearchView.Item()
                 {
-                    ID = guid,
+                    Content = guid,
                     Path = Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid))
                 }).ToList();
             searchWindow.OnSelection += item =>
             {
-                var module = AssetDatabase.LoadAssetAtPath<ModuleDefinition>(AssetDatabase.GUIDToAssetPath(item.ID));
+                var module = AssetDatabase.LoadAssetAtPath<ModuleDefinition>(AssetDatabase.GUIDToAssetPath((string)item.Content));
                 modulesProperty.InsertArrayElementAtIndex(modulesProperty.arraySize);
                 modulesProperty.GetArrayElementAtIndex(modulesProperty.arraySize - 1).boxedValue = new Entity.ModuleInstance()
                 {

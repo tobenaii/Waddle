@@ -27,7 +27,7 @@ namespace Waddle.SearchWindow
 
         public struct Item
         {
-            public string ID;
+            public object Content;
             public string Path;
             public Texture2D Icon;
             public string Name => System.IO.Path.GetFileName(Path);

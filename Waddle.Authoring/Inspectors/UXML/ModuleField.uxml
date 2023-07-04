@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Assets/Waddle/Waddle.Authoring/Inspectors/USS/ModuleField.uss?fileID=7433441132597879392&amp;guid=9361462b25118a849938d153c2856357&amp;type=3#ModuleField" />
     <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row;">
-        <ui:TextField picking-mode="Ignore" value="filler text" binding-path="Name" name="FieldName" style="width: 50%;" />
-        <uie:ObjectField binding-path="FieldType" style="flex-grow: 1;" />
+        <ui:TextField picking-mode="Ignore" binding-path="Name" name="FieldName" style="width: 50%;" />
+        <ui:DropdownField index="-1" focusable="false" picking-mode="Ignore" style="flex-grow: 1; flex-shrink: 1;" />
     </ui:VisualElement>
 </ui:UXML>
