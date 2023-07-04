@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Waddle.Waddle.SearchWindow
+namespace Waddle.SearchWindow
 {
     class SearchField : TextField
     {

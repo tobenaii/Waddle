@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Waddle.Waddle.SearchWindow;
 
-namespace UnityEngine.UIExtras
+namespace Waddle.SearchWindow
 {
     class SearchWindow : EditorWindow
     {

@@ -4,9 +4,8 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.UIExtras;
 
-namespace Waddle.Waddle.SearchWindow
+namespace Waddle.SearchWindow
 {
     class SearchView : VisualElement
     {
