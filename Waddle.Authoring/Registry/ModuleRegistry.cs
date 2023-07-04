@@ -23,9 +23,7 @@ namespace Waddle.Authoring.Registry
             Path.Combine(Path.GetDirectoryName(Application.dataPath)!, "Library/com.waddle.authoring/");
 
         private static string RegistryPath => Path.Combine(LibraryPath, "ModuleRegistry.json");
-
-        private static FileSystemWatcher _watcher;
-
+        
         static ModuleRegistry()
         {
             AssemblyReloadEvents.afterAssemblyReload += LoadRegistry;
@@ -94,11 +92,21 @@ namespace Waddle.Authoring.Registry
             if (!_registryMaps.EntityModuleMap.TryGetValue(entityGuid, out var moduleGuids))
             {
                 moduleGuids = new List<string>();
+                _registryMaps.EntityModuleMap.Add(entityGuid, moduleGuids);
             }
             
             foreach (var prevModule in moduleGuids)
             {
-                _registryMaps.ModuleEntityMap[prevModule].Remove(entityGuid);
+                _registryMaps.ModuleEntityMap[prevModule].RemoveAll(x => x == entityGuid);
+            }
+
+            var availableModules = AssetDatabase.FindAssets($"t:{typeof(ModuleDefinition).AssemblyQualifiedName}");
+            foreach (var moduleGuid in _registryMaps.ModuleEntityMap.Keys.ToList())
+            {
+                if (!availableModules.Contains(moduleGuid))
+                {
+                    _registryMaps.ModuleEntityMap.Remove(moduleGuid);
+                }
             }
             
             moduleGuids.Clear();
