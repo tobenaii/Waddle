@@ -61,7 +61,7 @@ namespace Waddle.Authoring.Registry
                     moduleGuids = new List<string>();
                     _registryMaps.EntityModuleMap.Add(entityGuid, moduleGuids);
                 }
-                foreach (var moduleGuid in entity.Modules.Select(module => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module.Module))))
+                foreach (var moduleGuid in entity.Modules.Select(module => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module.ModuleDefinition))))
                 {
                     moduleGuids.Add(moduleGuid);
                     if (!_registryMaps.ModuleEntityMap.TryGetValue(moduleGuid, out var mappedEntityGuids))
@@ -103,7 +103,7 @@ namespace Waddle.Authoring.Registry
             
             moduleGuids.Clear();
             
-            foreach (var moduleGuid in entity.Modules.Select(module => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module.Module))))
+            foreach (var moduleGuid in entity.Modules.Select(module => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module.ModuleDefinition))))
             {
                 moduleGuids.Add(moduleGuid);
                 if (!_registryMaps.ModuleEntityMap.TryGetValue(moduleGuid, out var entityGuids))

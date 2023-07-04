@@ -11,7 +11,7 @@ namespace Waddle.Authoring.PostProcessors
             foreach (var assetPath in importedAssets)
             {
                 var assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-                if (assetType != typeof(Module)) continue;
+                if (assetType != typeof(ModuleDefinition)) continue;
                 var moduleGuid = AssetDatabase.AssetPathToGUID(assetPath);
                 foreach (var entityGuid in ModuleRegistry.GetEntitiesWithModule(moduleGuid))
                 {

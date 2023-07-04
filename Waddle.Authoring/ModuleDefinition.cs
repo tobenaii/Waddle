@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Waddle.Authoring
 {
     [CreateAssetMenu(menuName = "Waddle/Module")]
-    public class Module : ScriptableObject
+    public class ModuleDefinition : ScriptableObject
     {
         [Serializable]
         public class FieldDefinition
@@ -18,6 +18,6 @@ namespace Waddle.Authoring
         
         [SerializeField] private List<FieldDefinition> _fieldDefinitions;
 
-        public IEnumerable<FieldDefinition> FieldDefinitions => _fieldDefinitions;
+        public List<FieldDefinition> FieldDefinitions => _fieldDefinitions;
     }
 }

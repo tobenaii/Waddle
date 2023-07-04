@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -7,7 +6,6 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Search;
 using UnityEngine.UIElements;
-using Waddle.Authoring.Registry;
 
 namespace Waddle.Authoring.Inspectors
 {
@@ -22,7 +20,6 @@ namespace Waddle.Authoring.Inspectors
         {
             var root = _editorAsset.CloneTree();
             var listView = root.Q<ListView>();
-            listView.itemsSource = ((Entity)target).Modules;
             listView.Q<Button>("unity-list-view__add-button").clickable = new Clickable(OpenModuleSearchWindow);
             listView.makeItem = _itemAsset.CloneTree;
             listView.bindItem = (element, moduleIndex) =>
@@ -30,7 +27,7 @@ namespace Waddle.Authoring.Inspectors
                 var moduleProperty = serializedObject.FindProperty("_modules").GetArrayElementAtIndex(moduleIndex);
                 
                 var fieldList = element.Q<Foldout>();
-                fieldList.text = ObjectNames.NicifyVariableName(moduleProperty.FindPropertyRelative("Module").objectReferenceValue.name);
+                fieldList.text = ObjectNames.NicifyVariableName(moduleProperty.FindPropertyRelative("ModuleDefinition").objectReferenceValue.name);
                 
                 var fieldsProperty = moduleProperty.FindPropertyRelative("Fields");
                 var fieldsRoot = fieldList.Q("FieldsRoot");
@@ -56,7 +53,7 @@ namespace Waddle.Authoring.Inspectors
         {
             SearchContext context = SearchService.CreateContext(GetProvider(), "", 
                 SearchFlags.OpenPicker | SearchFlags.HidePanels);
-            EditorWindow window = (EditorWindow)SearchService.ShowPicker(new SearchViewState(context, AddModule, null, "", typeof(Module))
+            EditorWindow window = (EditorWindow)SearchService.ShowPicker(new SearchViewState(context, AddModule, null, "", typeof(ModuleDefinition))
             {
                 excludeClearItem = true,
                 hideTabs = true,
@@ -77,7 +74,7 @@ namespace Waddle.Authoring.Inspectors
 
             var entity = (Entity)target;
             var moduleInstance = entity.AddModuleInstance();
-            moduleInstance.Module = (Module)module;
+            moduleInstance.ModuleDefinition = (ModuleDefinition)module;
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(entity));
             Repaint();
         }
@@ -94,7 +91,7 @@ namespace Waddle.Authoring.Inspectors
             {
                 fetchItems = (context, items, provider) =>
                 {
-                    var type = typeof(Module);
+                    var type = typeof(ModuleDefinition);
                     var results = AssetDatabase.FindAssets($"t:{type.Namespace}.{type.Name}" + context.searchQuery);
                     foreach (var guid in results)
                     {

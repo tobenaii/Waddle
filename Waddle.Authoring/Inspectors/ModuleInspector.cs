@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Waddle.Authoring.Inspectors
 {
-    [CustomEditor(typeof(Module))]
+    [CustomEditor(typeof(ModuleDefinition))]
     public class ModuleInspector : Editor
     {
         [SerializeField] private VisualTreeAsset _moduleAsset;

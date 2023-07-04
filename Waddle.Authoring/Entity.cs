@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Waddle.Authoring
 {
@@ -9,7 +10,7 @@ namespace Waddle.Authoring
         [System.Serializable]
         public class ModuleInstance
         {
-            public Module Module;
+            public ModuleDefinition ModuleDefinition;
             public List<Field> Fields;
         }
 

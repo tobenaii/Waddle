@@ -25,7 +25,7 @@ namespace Waddle.Authoring.PostProcessors
             if (entity.Modules == null) return;
             foreach (var moduleInstance in entity.Modules)
             {
-                var module = moduleInstance.Module;
+                var module = moduleInstance.ModuleDefinition;
 
                 foreach (var moduleField in module.FieldDefinitions)
                 {
@@ -55,6 +55,12 @@ namespace Waddle.Authoring.PostProcessors
                     if (module.FieldDefinitions.FirstOrDefault(field => field.ID == entityField.ID) != null) continue;
                     moduleInstance.Fields.Remove(entityField);
                 }
+                moduleInstance.Fields.Sort((field1, field2) =>
+                {
+                    var index1 = moduleInstance.ModuleDefinition.FieldDefinitions.FindIndex(x => x.ID == field1.ID);
+                    var index2 = moduleInstance.ModuleDefinition.FieldDefinitions.FindIndex(x => x.ID == field2.ID);
+                    return index1.CompareTo(index2);
+                });
             }
             ModuleRegistry.UpdateEntityWithModule(entity);
         }
