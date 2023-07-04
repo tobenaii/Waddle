@@ -62,7 +62,7 @@ namespace Waddle.Authoring.PostProcessors
                     return index1.CompareTo(index2);
                 });
             }
-            ModuleRegistry.UpdateEntityWithModule(entity);
+            ModuleRegistry.UpdateModulesForEntity(entity);
         }
     }
 }

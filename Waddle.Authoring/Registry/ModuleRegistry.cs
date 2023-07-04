@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Newtonsoft.Json;
+using System.IO;
+using System.Linq;
 
 namespace Waddle.Authoring.Registry
 {
@@ -11,24 +11,23 @@ namespace Waddle.Authoring.Registry
     public static class ModuleRegistry
     {
         [System.Serializable]
-        private class RegistryMaps
+        private class RegistryState
         {
             public readonly Dictionary<string, List<string>> ModuleEntityMap = new();
             public readonly Dictionary<string, List<string>> EntityModuleMap = new();
         }
 
-        private static RegistryMaps _registryMaps;
-        
-        private static string LibraryPath =>
-            Path.Combine(Path.GetDirectoryName(Application.dataPath)!, "Library/com.waddle.authoring/");
+        private static readonly RegistryState RegistryMaps = new();
 
+        private static string LibraryPath => Path.Combine(Path.GetDirectoryName(Application.dataPath)!, "Library/com.waddle.authoring/");
         private static string RegistryPath => Path.Combine(LibraryPath, "ModuleRegistry.json");
-        
+
         static ModuleRegistry()
         {
             AssemblyReloadEvents.afterAssemblyReload += LoadRegistry;
+            LoadRegistry();
         }
-        
+
         static void LoadRegistry()
         {
             if (!File.Exists(RegistryPath))
@@ -37,91 +36,91 @@ namespace Waddle.Authoring.Registry
                 return;
             }
             var json = File.ReadAllText(RegistryPath);
-            _registryMaps = JsonConvert.DeserializeObject<RegistryMaps>(json);
+            JsonConvert.PopulateObject(json, RegistryMaps);
         }
-        
-        static void InitialiseRegistry()
+
+        public static IEnumerable<string> GetEntitiesWithModule(string moduleGuid)
+        {
+            return RegistryMaps.ModuleEntityMap.TryGetValue(moduleGuid, out var entities) ? entities : Enumerable.Empty<string>();
+        }
+
+        public static void UpdateModulesForEntity(Entity entity)
+        {
+            var entityGuid = AssetPathToGUID(entity);
+            if (!RegistryMaps.EntityModuleMap.TryGetValue(entityGuid, out var oldModuleGuids))
+            {
+                oldModuleGuids = new List<string>();
+                RegistryMaps.EntityModuleMap.Add(entityGuid, oldModuleGuids);
+            }
+            var currentModuleGuids = ModuleGuidsFromEntity(entity);
+
+            foreach (var moduleGuid in oldModuleGuids.Except(currentModuleGuids).ToList())
+            {
+                RemoveEntry(moduleGuid, entityGuid, RegistryMaps.ModuleEntityMap);
+                oldModuleGuids.Remove(moduleGuid);
+            }
+
+            foreach (var moduleGuid in currentModuleGuids.Except(oldModuleGuids))
+            {
+                oldModuleGuids.Add(moduleGuid);
+                AddEntry(moduleGuid, entityGuid, RegistryMaps.ModuleEntityMap);
+            }
+
+            SaveRegistry();
+        }
+
+        private static string AssetPathToGUID(Object obj)
+        {
+            return AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(obj));
+        }
+
+        private static List<string> ModuleGuidsFromEntity(Entity entity)
+        {
+            return entity.Modules.Select(module => AssetPathToGUID(module.ModuleDefinition)).ToList();
+        }
+
+        private static void AddEntry(string key, string value, Dictionary<string, List<string>> map)
+        {
+            if (!map.TryGetValue(key, out var list))
+            {
+                list = new List<string>();
+                map.Add(key, list);
+            }
+            list.Add(value);
+        }
+
+        private static void RemoveEntry(string key, string value, Dictionary<string, List<string>> map)
+        {
+            if (!map.TryGetValue(key, out var list)) return;
+            list.Remove(value);
+            if (list.Count == 0)
+            {
+                map.Remove(key);
+            }
+        }
+
+        private static void InitialiseRegistry()
         {
             if (!Directory.Exists(LibraryPath))
             {
                 Directory.CreateDirectory(LibraryPath);
             }
-            
-            File.Create(RegistryPath).Dispose();
-            _registryMaps = new RegistryMaps();
+
+            File.WriteAllText(RegistryPath, string.Empty);
             var entityType = typeof(Entity);
             var entityGuids = AssetDatabase.FindAssets($"t:{entityType.Namespace}.{entityType.Name}");
             foreach (var entityGuid in entityGuids)
             {
                 var entity = AssetDatabase.LoadAssetAtPath<Entity>(AssetDatabase.GUIDToAssetPath(entityGuid));
-                if (!_registryMaps.EntityModuleMap.TryGetValue(entityGuid, out var moduleGuids))
-                {
-                    moduleGuids = new List<string>();
-                    _registryMaps.EntityModuleMap.Add(entityGuid, moduleGuids);
-                }
-                foreach (var moduleGuid in entity.Modules.Select(module => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module.ModuleDefinition))))
-                {
-                    moduleGuids.Add(moduleGuid);
-                    if (!_registryMaps.ModuleEntityMap.TryGetValue(moduleGuid, out var mappedEntityGuids))
-                    {
-                        mappedEntityGuids = new List<string>();
-                        _registryMaps.ModuleEntityMap.Add(moduleGuid, mappedEntityGuids);
-                    }
-                    mappedEntityGuids.Add(entityGuid);
-                }
+                UpdateModulesForEntity(entity);
             }
             SaveRegistry();
         }
 
         private static void SaveRegistry()
         {
-            if (_registryMaps.ModuleEntityMap == null) return;
-            var json = JsonConvert.SerializeObject(_registryMaps, Formatting.Indented);
+            var json = JsonConvert.SerializeObject(RegistryMaps, Formatting.Indented);
             File.WriteAllText(RegistryPath, json);
-        }
-
-        public static IEnumerable<string> GetEntitiesWithModule(string moduleGuid)
-        {
-            return _registryMaps.ModuleEntityMap.TryGetValue(moduleGuid, out var entities) ? entities : Enumerable.Empty<string>();
-        }
-
-        public static void UpdateEntityWithModule(Entity entity)
-        {
-            var entityGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(entity));
-            
-            if (!_registryMaps.EntityModuleMap.TryGetValue(entityGuid, out var moduleGuids))
-            {
-                moduleGuids = new List<string>();
-                _registryMaps.EntityModuleMap.Add(entityGuid, moduleGuids);
-            }
-            
-            foreach (var prevModule in moduleGuids)
-            {
-                _registryMaps.ModuleEntityMap[prevModule].RemoveAll(x => x == entityGuid);
-            }
-
-            var availableModules = AssetDatabase.FindAssets($"t:{typeof(ModuleDefinition).AssemblyQualifiedName}");
-            foreach (var moduleGuid in _registryMaps.ModuleEntityMap.Keys.ToList())
-            {
-                if (!availableModules.Contains(moduleGuid))
-                {
-                    _registryMaps.ModuleEntityMap.Remove(moduleGuid);
-                }
-            }
-            
-            moduleGuids.Clear();
-            
-            foreach (var moduleGuid in entity.Modules.Select(module => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(module.ModuleDefinition))))
-            {
-                moduleGuids.Add(moduleGuid);
-                if (!_registryMaps.ModuleEntityMap.TryGetValue(moduleGuid, out var entityGuids))
-                {
-                    entityGuids = new List<string>();
-                    _registryMaps.ModuleEntityMap.Add(moduleGuid, entityGuids);
-                }
-                entityGuids.Add(entityGuid);
-            }
-            SaveRegistry();
         }
     }
 }
