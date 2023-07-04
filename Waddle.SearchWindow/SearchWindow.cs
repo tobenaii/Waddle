@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 namespace Waddle.SearchWindow
 {
-    class SearchWindow : EditorWindow
+    public class SearchWindow : EditorWindow
     {
         private SearchView _searchView;
         

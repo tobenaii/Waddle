@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace Waddle.SearchWindow
 {
-    class SearchView : VisualElement
+    public class SearchView : VisualElement
     {
         public event Action<Item> OnSelection;
 
@@ -27,6 +27,7 @@ namespace Waddle.SearchWindow
 
         public struct Item
         {
+            public string ID;
             public string Path;
             public Texture2D Icon;
             public string Name => System.IO.Path.GetFileName(Path);

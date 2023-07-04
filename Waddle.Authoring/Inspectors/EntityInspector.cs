@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Search;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Search;
 using UnityEngine.UIElements;
+using Waddle.SearchWindow;
 
 namespace Waddle.Authoring.Inspectors
 {
@@ -51,58 +53,25 @@ namespace Waddle.Authoring.Inspectors
 
         private void OpenModuleSearchWindow()
         {
-            SearchContext context = SearchService.CreateContext(GetProvider(), "", 
-                SearchFlags.OpenPicker | SearchFlags.HidePanels);
-            EditorWindow window = (EditorWindow)SearchService.ShowPicker(new SearchViewState(context, AddModule, null, "", typeof(ModuleDefinition))
-            {
-                excludeClearItem = true,
-                hideTabs = true,
-                hideAllGroup = true,
-                flags = SearchViewFlags.Borderless | 
-                        SearchViewFlags.CompactView | 
-                        SearchViewFlags.DisableInspectorPreview | 
-                        SearchViewFlags.DisableBuilderModeToggle |
-                        SearchViewFlags.DisableSavedSearchQuery |
-                        SearchViewFlags.NoIndexing
-            });
-            window.position = new Rect(GUIUtility.GUIToScreenPoint(Event.current.mousePosition), new Vector2(200, 400));
-        }
+            var searchWindow = CreateInstance<Waddle.SearchWindow.SearchWindow>();
 
-        private void AddModule(Object module, bool cancelled)
-        {
-            if (cancelled) return;
-
-            var entity = (Entity)target;
-            var moduleInstance = entity.AddModuleInstance();
-            moduleInstance.ModuleDefinition = (ModuleDefinition)module;
-            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(entity));
-            Repaint();
-        }
-
-        private static IEnumerable<SearchProvider> GetProvider()
-        {
-            yield return SearchService.GetProvider("modules");
-        }
-
-        [SearchItemProvider]
-        private static SearchProvider CreateProvider()
-        {
-            return new SearchProvider("modules", "Modules")
-            {
-                fetchItems = (context, items, provider) =>
+            var type = typeof(ModuleDefinition);
+            searchWindow.Items = AssetDatabase.FindAssets($"t:{type.Namespace}.{type.Name}").Select(guid =>
+                new SearchView.Item()
                 {
-                    var type = typeof(ModuleDefinition);
-                    var results = AssetDatabase.FindAssets($"t:{type.Namespace}.{type.Name}" + context.searchQuery);
-                    foreach (var guid in results)
-                    {
-                        items.Add(provider.CreateItem(AssetDatabase.GUIDToAssetPath(guid), null, null, (Texture2D)EditorGUIUtility.IconContent("d_ScriptableObject Icon").image, null));
-                    }
-                    return null;
-                },
-                fetchLabel = (item, _) => Path.GetFileNameWithoutExtension(item.id),
-                fetchPreview = (_, _, _, _) => (Texture2D)EditorGUIUtility.IconContent("d_ScriptableObject Icon").image,
-                toObject = (item, _) => AssetDatabase.LoadMainAssetAtPath(item.id),
+                    ID = guid,
+                    Path = Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid))
+                }).ToList();
+            searchWindow.OnSelection += item =>
+            {
+                var entity = (Entity)target;
+                var moduleInstance = entity.AddModuleInstance();
+                moduleInstance.ModuleDefinition = AssetDatabase.LoadAssetAtPath<ModuleDefinition>(AssetDatabase.GUIDToAssetPath(item.ID));
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(entity));
+                Repaint();
             };
+            searchWindow.ShowAsDropDown(default, new Vector2(200, 400));
+            searchWindow.position = new Rect(GUIUtility.GUIToScreenPoint(Event.current.mousePosition), new Vector2(200, 400));
         }
     }
 }

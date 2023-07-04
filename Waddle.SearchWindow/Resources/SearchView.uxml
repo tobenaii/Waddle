@@ -1,4 +1,4 @@
-<ui:UXML xmlns:uiex="UnityEngine.UIExtras"
+<ui:UXML xmlns:uiex="Waddle.SearchWindow"
          xmlns:ui="UnityEngine.UIElements"
          xmlns:uie="UnityEditor.UIElements">
   <!--ui:Label text="Add Element" class="SearchView-Label__Title" /-->
