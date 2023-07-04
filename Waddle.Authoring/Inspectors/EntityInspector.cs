@@ -20,13 +20,17 @@ namespace Waddle.Authoring.Inspectors
         public override bool UseDefaultMargins() => false;
         public override VisualElement CreateInspectorGUI()
         {
+            var modulesProperty = serializedObject.FindProperty("_modules");
+            
             var root = _editorAsset.CloneTree();
+            root.Q<Button>("AddModuleButton").clicked += () => OpenModuleSearchWindow(modulesProperty);
             var listView = root.Q<ListView>();
-            listView.Q<Button>("unity-list-view__add-button").clickable = new Clickable(OpenModuleSearchWindow);
             listView.makeItem = _itemAsset.CloneTree;
             listView.bindItem = (element, moduleIndex) =>
             {
-                var moduleProperty = serializedObject.FindProperty("_modules").GetArrayElementAtIndex(moduleIndex);
+                InstallRemoveManipulator(element.Q<Foldout>(), modulesProperty, moduleIndex);
+                
+                var moduleProperty = modulesProperty.GetArrayElementAtIndex(moduleIndex);
                 
                 var fieldList = element.Q<Foldout>();
                 fieldList.text = ObjectNames.NicifyVariableName(moduleProperty.FindPropertyRelative("ModuleDefinition").objectReferenceValue.name);
@@ -51,7 +55,21 @@ namespace Waddle.Authoring.Inspectors
             return root;
         }
 
-        private void OpenModuleSearchWindow()
+        private void InstallRemoveManipulator(VisualElement element, SerializedProperty modulesProperty, int moduleIndex)
+        {
+            var manipulator = new ContextualMenuManipulator(menu =>
+            {
+                menu.menu.AppendAction("Remove Module", _ =>
+                {
+                    modulesProperty.DeleteArrayElementAtIndex(moduleIndex);
+                    modulesProperty.serializedObject.ApplyModifiedProperties();
+                    Repaint();
+                });
+            });
+            manipulator.target = element;
+        }
+
+        private void OpenModuleSearchWindow(SerializedProperty modulesProperty)
         {
             var searchWindow = CreateInstance<Waddle.SearchWindow.SearchWindow>();
 
@@ -64,10 +82,16 @@ namespace Waddle.Authoring.Inspectors
                 }).ToList();
             searchWindow.OnSelection += item =>
             {
-                var entity = (Entity)target;
-                var moduleInstance = entity.AddModuleInstance();
-                moduleInstance.ModuleDefinition = AssetDatabase.LoadAssetAtPath<ModuleDefinition>(AssetDatabase.GUIDToAssetPath(item.ID));
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(entity));
+                var module = AssetDatabase.LoadAssetAtPath<ModuleDefinition>(AssetDatabase.GUIDToAssetPath(item.ID));
+                modulesProperty.InsertArrayElementAtIndex(modulesProperty.arraySize);
+                modulesProperty.GetArrayElementAtIndex(modulesProperty.arraySize - 1).boxedValue = new Entity.ModuleInstance()
+                {
+                    Fields = new List<Field>(),
+                    ModuleDefinition = module,
+                };
+                modulesProperty.serializedObject.ApplyModifiedProperties();
+                
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
                 Repaint();
             };
             searchWindow.ShowAsDropDown(default, new Vector2(200, 400));

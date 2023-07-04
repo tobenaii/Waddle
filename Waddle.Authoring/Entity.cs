@@ -17,15 +17,5 @@ namespace Waddle.Authoring
         [SerializeField] private List<ModuleInstance> _modules;
 
         public List<ModuleInstance> Modules => _modules;
-
-        public ModuleInstance AddModuleInstance()
-        {
-            var inst = new ModuleInstance()
-            {
-                Fields = new List<Field>(),
-            };
-            _modules.Add(inst);
-            return inst;
-        }
     }
 }
