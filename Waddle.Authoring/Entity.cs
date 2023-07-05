@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Waddle.Authoring
 {
@@ -12,6 +12,11 @@ namespace Waddle.Authoring
         {
             public ModuleDefinition ModuleDefinition;
             public List<Field> Fields;
+
+            public T GetValue<T>(string name)
+            {
+                return ((Field<T>)Fields.First(field => field.name == name)).Value;
+            }
         }
 
         [SerializeField] private List<ModuleInstance> _modules;
