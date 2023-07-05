@@ -43,6 +43,11 @@ namespace Waddle.Authoring.Registry
         {
             return RegistryMaps.ModuleEntityMap.TryGetValue(moduleGuid, out var entities) ? entities : Enumerable.Empty<string>();
         }
+        
+        public static IEnumerable<string> GetModulesFromEntity(string entityGuid)
+        {
+            return RegistryMaps.EntityModuleMap.TryGetValue(entityGuid, out var modules) ? modules : Enumerable.Empty<string>();
+        }
 
         public static void UpdateModulesForEntity(Entity entity)
         {
