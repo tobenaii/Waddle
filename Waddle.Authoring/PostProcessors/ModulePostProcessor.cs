@@ -50,11 +50,11 @@ namespace Waddle.Authoring.PostProcessors
             sb.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
             sb.AppendLine("namespace Waddle.Authoring.GeneratedModules");
             sb.AppendLine("{");
-            sb.AppendLine("\tpublic class GeneratedClass");
+            sb.AppendLine($"\tpublic class {moduleDefinition.name}");
             sb.AppendLine("\t{");
             sb.AppendLine("\t\tprivate readonly Entity.ModuleInstance _moduleInstance;");
             sb.AppendLine();
-            sb.AppendLine("\t\tpublic GeneratedClass(Entity.ModuleInstance moduleInstance)");
+            sb.AppendLine($"\t\tpublic {moduleDefinition.name}(Entity.ModuleInstance moduleInstance)");
             sb.AppendLine("\t\t{");
             sb.AppendLine("\t\t\t_moduleInstance = moduleInstance;");
             sb.AppendLine("\t\t}");
