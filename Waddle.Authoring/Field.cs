@@ -4,7 +4,13 @@ namespace Waddle.Authoring
 {
     public abstract class Field : ScriptableObject
     {
-        [HideInInspector] public string ID;
+        [HideInInspector, SerializeField] private FieldDefinition _fieldDefinition;
+
+        public FieldDefinition FieldDefinition
+        {
+            get;
+            internal set;
+        }
     }
     
     public abstract class Field<T> : Field

@@ -16,6 +16,6 @@ namespace Waddle.Authoring
 
         [SerializeField] private List<ModuleInstance> _modules;
 
-        public List<ModuleInstance> Modules => _modules;
+        public List<ModuleInstance> ModuleInstances => _modules;
     }
 }

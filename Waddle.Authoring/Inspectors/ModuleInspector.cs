@@ -31,16 +31,15 @@ namespace Waddle.Authoring.Inspectors
             listView.makeItem += _fieldDefinitionAsset.CloneTree;
             listView.bindItem += (element, i) =>
             {
-                var fieldInstance = _fieldDefinitions.GetArrayElementAtIndex(i);
+                var fieldDefinition = (FieldDefinition)_fieldDefinitions.GetArrayElementAtIndex(i).objectReferenceValue;
                 var dropdown = element.Q<DropdownField>();
                 dropdown.choices = new List<string>()
                 {
-                    fieldInstance.FindPropertyRelative("FieldType")
-                        .objectReferenceValue.name
+                    ObjectNames.NicifyVariableName(fieldDefinition.FieldType.Name)
                 };
                 dropdown.index = 0;
 
-                element.Q<TextField>().BindProperty(fieldInstance.FindPropertyRelative("Name"));
+                element.Q<TextField>().Bind(new SerializedObject(fieldDefinition));
             };
             return root;
         }
@@ -60,13 +59,15 @@ namespace Waddle.Authoring.Inspectors
                 .ToList();
             searchWindow.OnSelection += item =>
             {
+                var fieldDefinition = CreateInstance<FieldDefinition>();
+                fieldDefinition.FieldType = (Type)item.Content;
+                fieldDefinition.name = "New Field";
+                
+                AssetDatabase.AddObjectToAsset(fieldDefinition, target);
+                AssetDatabase.Refresh();
+                
                 _fieldDefinitions.InsertArrayElementAtIndex(_fieldDefinitions.arraySize);
-                _fieldDefinitions.GetArrayElementAtIndex(_fieldDefinitions.arraySize - 1).boxedValue = new ModuleDefinition.FieldDefinition()
-                {
-                    Name = "New Field",
-                    ID = Guid.NewGuid().ToString(),
-                    FieldType = MonoScript.FromScriptableObject(CreateInstance((Type)item.Content)),
-                };
+                _fieldDefinitions.GetArrayElementAtIndex(_fieldDefinitions.arraySize - 1).objectReferenceValue = fieldDefinition;
                 _fieldDefinitions.serializedObject.ApplyModifiedProperties();
                 
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));

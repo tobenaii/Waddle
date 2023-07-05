@@ -76,7 +76,7 @@ namespace Waddle.Authoring.Registry
 
         private static List<string> ModuleGuidsFromEntity(Entity entity)
         {
-            return entity.Modules.Select(module => AssetPathToGUID(module.ModuleDefinition)).ToList();
+            return entity.ModuleInstances.Select(module => AssetPathToGUID(module.ModuleDefinition)).ToList();
         }
 
         private static void AddEntry(string key, string value, Dictionary<string, List<string>> map)
