@@ -67,21 +67,9 @@ namespace Waddle.Authoring.Unity
 
             public static ModuleWrapper FromModule(Module module)
             {
-                var moduleDefinition =
-                    AssetDatabase.LoadAssetAtPath<ModuleDefinitionContainer>(AssetDatabase.GUIDToAssetPath(module.ModuleID));
-
                 var fields = module.Fields
-                    .Where(field =>
-                        moduleDefinition.FieldDefinitions.FirstOrDefault(fieldDefinition =>
-                            fieldDefinition.FieldID == field.FieldID) != null)
                     .Select(FieldWrapper.FromField)
                     .ToList();
-                
-                fields.AddRange(
-                    moduleDefinition.FieldDefinitions.Where(fieldDefinition => fields.FirstOrDefault(field => field.FieldID == fieldDefinition.FieldID) == null)
-                        .Select(FieldExtensions.FromFieldDefinition)
-                        .Select(FieldWrapper.FromField)
-                    );
                 
                 return new ModuleWrapper()
                 {
@@ -116,6 +104,41 @@ namespace Waddle.Authoring.Unity
             {
                 Modules = new List<Module>()
             };
+
+            if (entity.Modules != null)
+            {
+                foreach (var module in entity.Modules)
+                {
+                    var moduleDefinition = AssetDatabase.LoadAssetAtPath<ModuleDefinitionContainer>(
+                        AssetDatabase.GUIDToAssetPath(module.ModuleID));
+                    module.Name = moduleDefinition.name;
+        
+                    var fieldIDsToRemove = new List<string>();
+
+                    foreach (var field in module.Fields)
+                    {
+                        var fieldDefinition = moduleDefinition.FieldDefinitions.FirstOrDefault(
+                            fd => fd.FieldID == field.FieldID);
+                        if (fieldDefinition != null)
+                        {
+                            field.Name = fieldDefinition.Name;
+                        }
+                        else
+                        {
+                            fieldIDsToRemove.Add(field.FieldID);
+                        }
+                    }
+
+                    module.Fields.RemoveAll(field => fieldIDsToRemove.Contains(field.FieldID));
+
+                    var newFields = moduleDefinition.FieldDefinitions
+                        .Where(fieldDefinition => module.Fields.All(field => field.FieldID != fieldDefinition.FieldID))
+                        .Select(FieldExtensions.FromFieldDefinition);
+
+                    module.Fields.AddRange(newFields);
+                }
+            }
+            
             _modules = entity.Modules?
                 .Where(module => AssetDatabase.LoadAssetAtPath<ModuleDefinitionContainer>(AssetDatabase.GUIDToAssetPath(module.ModuleID)))
                 .Select(ModuleWrapper.FromModule)
