@@ -5,14 +5,12 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Waddle.SearchWindow;
-using Button = UnityEngine.UIElements.Button;
 
-namespace Waddle.Authoring.Inspectors
+namespace Waddle.Authoring.Unity.Inspectors
 {
-    [CustomEditor(typeof(ModuleDefinition))]
+    [CustomEditor(typeof(ModuleDefinitionContainer))]
     public class ModuleInspector : Editor
     {
         [SerializeField] private VisualTreeAsset _moduleAsset;
@@ -22,7 +20,7 @@ namespace Waddle.Authoring.Inspectors
         
         public override VisualElement CreateInspectorGUI()
         {
-            _fieldDefinitions = serializedObject.FindProperty("_fieldDefinitions");
+            _fieldDefinitions = serializedObject.FindProperty("_moduleDefinition.FieldDefinitions");
             
             var root = new VisualElement();
             _moduleAsset.CloneTree(root);
@@ -31,46 +29,48 @@ namespace Waddle.Authoring.Inspectors
             listView.makeItem += _fieldDefinitionAsset.CloneTree;
             listView.bindItem += (element, i) =>
             {
-                var fieldDefinition = (FieldDefinition)_fieldDefinitions.GetArrayElementAtIndex(i).objectReferenceValue;
+                serializedObject.Update();
+                var fieldDefinition = (FieldDefinition)_fieldDefinitions.GetArrayElementAtIndex(i).boxedValue;
                 var dropdown = element.Q<DropdownField>();
                 dropdown.choices = new List<string>()
                 {
-                    ObjectNames.NicifyVariableName(fieldDefinition.FieldType.Name)
+                    ObjectNames.NicifyVariableName(Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(fieldDefinition.TypeID)))
                 };
                 dropdown.index = 0;
-
-                element.Q<TextField>().Bind(new SerializedObject(fieldDefinition));
+                
+                element.Unbind();
+                element.Q<TextField>().bindingPath = _fieldDefinitions.GetArrayElementAtIndex(i).FindPropertyRelative("Name").propertyPath;
+                element.Bind(serializedObject);
             };
             return root;
         }
 
         private void OpenFieldTypeSearchWindow()
         {
-            var searchWindow = CreateInstance<Waddle.SearchWindow.SearchWindow>();
-
-            searchWindow.Items = TypeCache.GetTypesDerivedFrom<Field>()
-                .Where(type => !type.IsAbstract)
+            var searchWindow = CreateInstance<SearchWindow.SearchWindow>();
+            
+            searchWindow.Items = TypeCache.GetTypesDerivedFrom<IFieldValue>()
+                .Where(type => !type.IsInterface)
                 .Select(type =>
                 new SearchView.Item()
                 {
-                    Content = type,
+                    Content = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(CreateInstance(type)))),
                     Path = ObjectNames.NicifyVariableName(type.Name),
                 })
                 .ToList();
             searchWindow.OnSelection += item =>
             {
-                var fieldDefinition = CreateInstance<FieldDefinition>();
-                fieldDefinition.FieldType = (Type)item.Content;
-                fieldDefinition.name = "New Field";
-                
-                AssetDatabase.AddObjectToAsset(fieldDefinition, target);
-                AssetDatabase.Refresh();
-                
+                var fieldDefinition = new FieldDefinition
+                {
+                    Name = "New Field",
+                    FieldID = GUID.Generate().ToString(),
+                    TypeID = (string)item.Content,
+                };
+
                 _fieldDefinitions.InsertArrayElementAtIndex(_fieldDefinitions.arraySize);
-                _fieldDefinitions.GetArrayElementAtIndex(_fieldDefinitions.arraySize - 1).objectReferenceValue = fieldDefinition;
-                _fieldDefinitions.serializedObject.ApplyModifiedProperties();
-                
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(target));
+                _fieldDefinitions.GetArrayElementAtIndex(_fieldDefinitions.arraySize - 1).boxedValue = fieldDefinition;
+                serializedObject.ApplyModifiedProperties();
+                serializedObject.Update();
                 Repaint();
             };
             searchWindow.ShowAsDropDown(default, new Vector2(200, 400));

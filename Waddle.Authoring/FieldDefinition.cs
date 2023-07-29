@@ -1,17 +1,10 @@
-﻿using System;
-using UnityEditor;
-using UnityEngine;
-
-namespace Waddle.Authoring
+﻿namespace Waddle.Authoring
 {
-    public class FieldDefinition : ScriptableObject
+    [System.Serializable]
+    public class FieldDefinition
     {
-        [SerializeField] private MonoScript _fieldScript;
-
-        public Type FieldType
-        {
-            get => _fieldScript.GetClass();
-            set => _fieldScript = MonoScript.FromScriptableObject(CreateInstance(value));
-        }
+        public string Name;
+        public string FieldID;
+        public string TypeID;
     }
 }

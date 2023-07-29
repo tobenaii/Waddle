@@ -1,7 +1,11 @@
 {
-    "name": "Waddle.Authoring",
+    "name": "Waddle.Authoring.Unity",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:b3a1b547d50c12141ae3873f944637ec",
+        "GUID:1f0fedac045e19e418396972f80cea8c",
+        "GUID:eec0964c48f6f4e40bc3ec2257ccf8c5"
+    ],
     "includePlatforms": [
         "Editor"
     ],

@@ -1,20 +1,19 @@
-﻿using UnityEngine;
+﻿using Newtonsoft.Json;
 
 namespace Waddle.Authoring
 {
-    public abstract class Field : ScriptableObject
+    [System.Serializable]
+    public class Field
     {
-        [HideInInspector, SerializeField] private FieldDefinition _fieldDefinition;
-
-        public FieldDefinition FieldDefinition
-        {
-            get;
-            internal set;
-        }
+        public string Name;
+        public string TypeID;
+        public string FieldID;
+        public IFieldValue Value;
     }
-    
-    public abstract class Field<T> : Field
+
+    public interface IFieldValue
     {
-        public abstract T Value { get; }
+        public string Serialize();
+        public void Deserialize(string json);
     }
 }

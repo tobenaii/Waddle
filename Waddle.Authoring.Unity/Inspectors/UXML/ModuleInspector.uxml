@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+        <ui:Label tabindex="-1" text="Label" display-tooltip-when-elided="true" binding-path="_name" name="Title" style="-unity-text-align: middle-center; font-size: 32px; padding-bottom: 14px; padding-top: 14px;" />
+        <ui:Label tabindex="-1" text="Fields" display-tooltip-when-elided="true" name="Title" style="-unity-text-align: middle-left; font-size: 16px; padding-bottom: 4px; padding-top: 4px;" />
+        <ui:ListView reorderable="false" show-foldout-header="false" show-bound-collection-size="false" show-add-remove-footer="true" binding-path="_moduleDefinition.FieldDefinitions" style="height: auto; flex-grow: 0;" />
+    </ui:VisualElement>
+</ui:UXML>
