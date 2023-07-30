@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text;
 using UnityEditor;
@@ -43,7 +42,7 @@ namespace Waddle.Authoring.Unity.Importer
 
             sb.AppendLine("namespace Waddle.Authoring.GeneratedModules");
             sb.AppendLine("{");
-            sb.AppendLine($"\tpublic class {moduleDefinition.name} : UnityEngine.MonoBehaviour");
+            sb.AppendLine($"\tpublic class {moduleDefinition.name} : UnityEngine.MonoBehaviour, Waddle.Authoring.Unity.Baking.IModuleWrapper");
             sb.AppendLine("\t{");
             sb.AppendLine("\t\tprivate readonly Waddle.Authoring.Module _module;");
             sb.AppendLine();

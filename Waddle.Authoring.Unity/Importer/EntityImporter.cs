@@ -7,13 +7,33 @@ using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEditor.AssetImporters;
 using UnityEngine;
-using Waddle.Authoring.Unity.Extensions;
+using Waddle.Authoring.Unity.Baking;
 
 namespace Waddle.Authoring.Unity.Importer
 {
     [ScriptedImporter(1, "entity")]
     public class EntityImporter : ScriptedImporter
     {
+        private static readonly Dictionary<Type, ModuleBaker> ModuleBakerMap = new();
+
+        [InitializeOnLoadMethod]
+        private static void InitializeBakerMap()
+        {
+            foreach (var moduleType in TypeCache.GetTypesDerivedFrom<IModuleWrapper>()
+                         .Where(type => !type.IsAbstract && !type.IsInterface))
+            {
+                var bakerType = TypeCache
+                    .GetTypesDerivedFrom<ModuleBaker>()
+                    .FirstOrDefault(type => !type.IsAbstract && type.BaseType!.IsGenericType &&
+                                            type.BaseType.GenericTypeArguments[0] == moduleType);
+
+                if (bakerType != null)
+                {
+                    ModuleBakerMap.Add(moduleType, (ModuleBaker)Activator.CreateInstance(bakerType));
+                }
+            }
+        }
+        
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var json = File.ReadAllText(ctx.assetPath);
@@ -36,7 +56,13 @@ namespace Waddle.Authoring.Unity.Importer
                         $"Assets/Waddle.Authoring.GeneratedModules/{module.ModuleID}.cs");
                 if (monoScript != null)
                 {
-                    mainObj.AddComponent(monoScript.GetClass());
+                    var moduleType = monoScript.GetClass();
+                    var moduleWrapper = mainObj.AddComponent(moduleType);
+                    if (ModuleBakerMap.TryGetValue(moduleType, out var baker))
+                    {
+                        // ReSharper disable once SuspiciousTypeConversion.Global
+                        baker.Bake(mainObj, (IModuleWrapper)moduleWrapper);
+                    }
                 }
             }
 
