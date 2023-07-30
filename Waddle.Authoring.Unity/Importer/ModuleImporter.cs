@@ -41,7 +41,6 @@ namespace Waddle.Authoring.Unity.Importer
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
             sb.AppendLine("namespace Waddle.Authoring.GeneratedModules");
             sb.AppendLine("{");
             sb.AppendLine($"\tpublic class {moduleDefinition.name} : UnityEngine.MonoBehaviour");
