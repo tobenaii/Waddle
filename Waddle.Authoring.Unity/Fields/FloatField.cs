@@ -6,6 +6,8 @@ namespace Waddle.Authoring.Unity.Fields
     public class FloatField : ScriptableObject, IFieldValue
     {
         [SerializeField] private float _value;
+
+        public float Value => _value;
         
         public string Serialize()
         {

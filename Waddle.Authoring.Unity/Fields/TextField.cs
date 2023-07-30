@@ -8,6 +8,8 @@ namespace Waddle.Authoring.Unity.Fields
     public class TextField : ScriptableObject, IFieldValue
     {
         [SerializeField] private LocalizedString _localizedString;
+
+        public LocalizedString Value => _localizedString;
         
         public string Serialize()
         {
