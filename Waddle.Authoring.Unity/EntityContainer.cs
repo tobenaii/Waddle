@@ -111,6 +111,10 @@ namespace Waddle.Authoring.Unity
                 {
                     var moduleDefinition = AssetDatabase.LoadAssetAtPath<ModuleDefinitionContainer>(
                         AssetDatabase.GUIDToAssetPath(module.ModuleID));
+                    if (moduleDefinition == null)
+                    {
+                        continue;
+                    }
                     module.Name = moduleDefinition.name;
         
                     var fieldIDsToRemove = new List<string>();
@@ -136,6 +140,10 @@ namespace Waddle.Authoring.Unity
                         .Select(FieldExtensions.FromFieldDefinition);
 
                     module.Fields.AddRange(newFields);
+                    
+                    module.Fields = module.Fields
+                        .OrderBy(field => moduleDefinition.FieldDefinitions.ToList().FindIndex(fd => fd.FieldID == field.FieldID))
+                        .ToList();
                 }
             }
             
