@@ -17,7 +17,7 @@ namespace Waddle.Authoring.Unity.Importer
             ctx.AddObjectToAsset("module definition", moduleDefinition);
             ctx.SetMainObject(moduleDefinition);
             
-            //GenerateAndSaveScript(moduleDefinition, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this)), "Assets/Waddle.Authoring.GeneratedModules");
+            GenerateAndSaveScript(moduleDefinition, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this)), "Assets/Waddle.Authoring.GeneratedModules");
         }
         
         private static void GenerateAndSaveScript(ModuleDefinitionContainer moduleDefinition, string scriptName, string folderPath)
@@ -44,7 +44,7 @@ namespace Waddle.Authoring.Unity.Importer
             sb.AppendLine("// ReSharper disable BuiltInTypeReferenceStyle");
             sb.AppendLine("namespace Waddle.Authoring.GeneratedModules");
             sb.AppendLine("{");
-            sb.AppendLine($"\tpublic class {moduleDefinition.name}");
+            sb.AppendLine($"\tpublic class {moduleDefinition.name} : UnityEngine.MonoBehaviour");
             sb.AppendLine("\t{");
             sb.AppendLine("\t\tprivate readonly Waddle.Authoring.Module _module;");
             sb.AppendLine();

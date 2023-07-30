@@ -14,14 +14,6 @@ namespace Waddle.Authoring.Unity.Importer
     [ScriptedImporter(1, "entity")]
     public class EntityImporter : ScriptedImporter
     {
-        private static string[] GatherDependenciesFromSourceFile(string path)
-        {
-            return new[]
-            {
-                AssetDatabase.GUIDToAssetPath("072e9c8ad103eb24a923b5ce8eb6c5b5")
-            };
-        }
-
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var json = File.ReadAllText(ctx.assetPath);
@@ -34,12 +26,20 @@ namespace Waddle.Authoring.Unity.Importer
                 Modules = new List<Module>()
             };
 
+            var mainObj = new GameObject("entity obj");
+
             foreach (var module in entity.Modules)
             {
-                ctx.DependsOnArtifact(new GUID(module.ModuleID));
+                ctx.DependsOnSourceAsset(new GUID(module.ModuleID));
+                var monoScript =
+                    AssetDatabase.LoadAssetAtPath<MonoScript>(
+                        $"Assets/Waddle.Authoring.GeneratedModules/{module.ModuleID}.cs");
+                if (monoScript != null)
+                {
+                    mainObj.AddComponent(monoScript.GetClass());
+                }
             }
 
-            var mainObj = new GameObject("entity obj");
             ctx.AddObjectToAsset("entity obj", mainObj);
             ctx.SetMainObject(mainObj);
         }

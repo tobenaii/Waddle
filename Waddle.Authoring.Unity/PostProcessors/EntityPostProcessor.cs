@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEditor;
-using UnityEngine;
 using Waddle.Authoring.Unity.Extensions;
 using Waddle.Authoring.Unity.Importer;
 
