@@ -21,6 +21,7 @@ namespace Waddle.Authoring.Unity
             var moduleDefinition = JsonConvert.DeserializeObject<ModuleDefinition>(json);
             moduleDefinition.Name = name;
             moduleDefinition.ModuleID = guid;
+            this.name = name;
             _moduleDefinition = moduleDefinition;
         }
         

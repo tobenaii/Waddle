@@ -104,51 +104,8 @@ namespace Waddle.Authoring.Unity
             {
                 Modules = new List<Module>()
             };
-
-            if (entity.Modules != null)
-            {
-                foreach (var module in entity.Modules)
-                {
-                    var moduleDefinition = AssetDatabase.LoadAssetAtPath<ModuleDefinitionContainer>(
-                        AssetDatabase.GUIDToAssetPath(module.ModuleID));
-                    if (moduleDefinition == null)
-                    {
-                        continue;
-                    }
-                    module.Name = moduleDefinition.name;
-        
-                    var fieldIDsToRemove = new List<string>();
-
-                    foreach (var field in module.Fields)
-                    {
-                        var fieldDefinition = moduleDefinition.FieldDefinitions.FirstOrDefault(
-                            fd => fd.FieldID == field.FieldID);
-                        if (fieldDefinition != null)
-                        {
-                            field.Name = fieldDefinition.Name;
-                        }
-                        else
-                        {
-                            fieldIDsToRemove.Add(field.FieldID);
-                        }
-                    }
-
-                    module.Fields.RemoveAll(field => fieldIDsToRemove.Contains(field.FieldID));
-
-                    var newFields = moduleDefinition.FieldDefinitions
-                        .Where(fieldDefinition => module.Fields.All(field => field.FieldID != fieldDefinition.FieldID))
-                        .Select(FieldExtensions.FromFieldDefinition);
-
-                    module.Fields.AddRange(newFields);
-                    
-                    module.Fields = module.Fields
-                        .OrderBy(field => moduleDefinition.FieldDefinitions.ToList().FindIndex(fd => fd.FieldID == field.FieldID))
-                        .ToList();
-                }
-            }
             
             _modules = entity.Modules?
-                .Where(module => AssetDatabase.LoadAssetAtPath<ModuleDefinitionContainer>(AssetDatabase.GUIDToAssetPath(module.ModuleID)))
                 .Select(ModuleWrapper.FromModule)
                 .ToList() ?? new List<ModuleWrapper>();
             return this;
