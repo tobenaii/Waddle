@@ -18,7 +18,10 @@ namespace Waddle.Authoring.Unity
 
         public void FromJson(string name, string guid, string json)
         {
-            var moduleDefinition = JsonConvert.DeserializeObject<ModuleDefinition>(json);
+            var moduleDefinition = JsonConvert.DeserializeObject<ModuleDefinition>(json) ?? new ModuleDefinition()
+            {
+                FieldDefinitions = new List<FieldDefinition>()
+            };
             moduleDefinition.Name = name;
             moduleDefinition.ModuleID = guid;
             this.name = name;
