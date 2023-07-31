@@ -1,0 +1,12 @@
+{
+  "name": "com.tobenai.waddle",
+  "description": "A data authoring library for Unity",
+  "version": "0.0.1",
+  "unity": "2022.3",
+  "unityRelease": "1f1",
+  "displayName": "Waddle",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+  },
+  "type": "library"
+}
