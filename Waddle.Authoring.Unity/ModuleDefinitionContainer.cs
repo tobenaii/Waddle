@@ -9,7 +9,7 @@ namespace Waddle.Authoring.Unity
     {
         [SerializeField] private ModuleDefinition _moduleDefinition;
 
-        public IEnumerable<FieldDefinition> FieldDefinitions => _moduleDefinition.FieldDefinitions;
+        public IList<FieldDefinition> FieldDefinitions => _moduleDefinition.FieldDefinitions;
         
         public string ToJson()
         {

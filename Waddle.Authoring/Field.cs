@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json;
-
-namespace Waddle.Authoring
+﻿namespace Waddle.Authoring
 {
     [System.Serializable]
     public class Field

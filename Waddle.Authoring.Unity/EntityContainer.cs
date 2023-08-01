@@ -22,6 +22,7 @@ namespace Waddle.Authoring.Unity
                 [SerializeField] private string _typeID;
                 [SerializeField] private ScriptableObject _value;
 
+                public string Name => _name;
                 public string FieldID => _fieldID;
                 public ScriptableObject Value => _value;
                 
@@ -52,7 +53,8 @@ namespace Waddle.Authoring.Unity
             [SerializeField] private List<FieldWrapper> _fields;
             [SerializeField] private string _moduleID;
 
-            public IEnumerable<FieldWrapper> Fields => _fields;
+            public string Name => _name;
+            public IList<FieldWrapper> Fields => _fields;
             public string ModuleID => _moduleID;
 
             public Module ToModule()
@@ -135,15 +137,17 @@ namespace Waddle.Authoring.Unity
                 var value = jo["Value"]!.Value<string>();
 
                 var valueType = AssetDatabase.LoadAssetAtPath<MonoScript>(AssetDatabase.GUIDToAssetPath(typeID)).GetClass();
-                var valueInstance = ScriptableObject.CreateInstance(valueType) as IFieldValue;
-                valueInstance!.Deserialize(value);
+                var valueInstance = CreateInstance(valueType);
+                valueInstance.name = name;
+                var fieldValue =  (IFieldValue)valueInstance;
+                fieldValue!.Deserialize(value);
             
                 var newField = new Field
                 {
                     Name = name,
                     FieldID = fieldID,
                     TypeID = typeID,
-                    Value = valueInstance
+                    Value = fieldValue
                 };
 
                 return newField;

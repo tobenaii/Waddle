@@ -53,7 +53,7 @@ namespace Waddle.Authoring.Unity.Importer
 
         protected override void InitializeExtraDataInstance(UnityEngine.Object extraData, int targetIndex)
         {
-            EditorUtility.CopySerialized(assetTarget, extraData);
+            EditorUtility.CopySerialized(assetTargets[targetIndex], extraData);
         }
 
         protected override void Apply()

@@ -14,6 +14,7 @@ namespace Waddle.Authoring.Unity.Importer
     [ScriptedImporter(1, "entity")]
     public class EntityImporter : ScriptedImporter
     {
+        private EntityContainer _entityContainer;
         private static readonly Dictionary<Type, ModuleBaker> ModuleBakerMap = new();
 
         [InitializeOnLoadMethod]
@@ -37,19 +38,20 @@ namespace Waddle.Authoring.Unity.Importer
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var json = File.ReadAllText(ctx.assetPath);
-            
-            JsonSerializerSettings settings = new JsonSerializerSettings();
-            settings.Converters.Add(new FieldConverter());
-            
-            var entity = JsonConvert.DeserializeObject<Entity>(json, settings) ?? new Entity()
-            {
-                Modules = new List<Module>()
-            };
 
+            var entityContainer = ScriptableObject.CreateInstance<EntityContainer>().FromJson(json);
+            
             var mainObj = new GameObject("entity obj");
 
-            foreach (var module in entity.Modules)
+            foreach (var module in entityContainer.Modules)
             {
+                foreach (var field in module.Fields)
+                {
+                    field.Value.name =
+                        $"{Path.GetFileNameWithoutExtension(ctx.assetPath)}.{module.Name}.{field.Value.name}";
+                    ctx.AddObjectToAsset($"{field.FieldID} field obj", field.Value);
+                }
+                
                 ctx.DependsOnSourceAsset(new GUID(module.ModuleID));
                 var monoScript =
                     AssetDatabase.LoadAssetAtPath<MonoScript>(
@@ -58,6 +60,11 @@ namespace Waddle.Authoring.Unity.Importer
                 {
                     var moduleType = monoScript.GetClass();
                     var moduleWrapper = mainObj.AddComponent(moduleType);
+
+                    var serializedModule = new SerializedObject(moduleWrapper);
+                    serializedModule.FindProperty("_module").boxedValue = module;
+                    serializedModule.ApplyModifiedProperties();
+                    
                     if (ModuleBakerMap.TryGetValue(moduleType, out var baker))
                     {
                         // ReSharper disable once SuspiciousTypeConversion.Global
