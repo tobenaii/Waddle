@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Packages/com.tobenai.waddle/Waddle.Authoring/Inspectors/USS/EntityInspector.uss?fileID=7433441132597879392&amp;guid=e9ed6ea5a25665c40bcf8cf1ad6c0abf&amp;type=3#EntityInspector" />
+    <ui:Label tabindex="-1" text="Label" display-tooltip-when-elided="true" binding-path="m_Name" name="Title" style="-unity-text-align: middle-center; font-size: 32px; padding-bottom: 14px; padding-top: 14px;" />
+    <ui:ListView virtualization-method="DynamicHeight" show-add-remove-footer="false" selection-type="None" reorderable="false" reorder-mode="Animated" show-bound-collection-size="false" show-border="false" focusable="true" usage-hints="-1" binding-path="_entity.Modules" style="padding-bottom: 8px; border-bottom-color: rgb(0, 0, 0); border-bottom-width: 1px; margin-bottom: 8px;" />
+    <ui:Button text="Add Module" display-tooltip-when-elided="true" name="AddModuleButton" style="width: 300px; height: 25px; justify-content: flex-start; align-items: auto; align-self: center;" />
+</ui:UXML>

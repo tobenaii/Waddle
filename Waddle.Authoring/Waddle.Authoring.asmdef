@@ -1,7 +1,9 @@
 {
     "name": "Waddle.Authoring",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:1f0fedac045e19e418396972f80cea8c"
+    ],
     "includePlatforms": [
         "Editor"
     ],
