@@ -1,45 +1,30 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using MoonWorks;
 using MoonWorks.Graphics;
 using MoonWorks.Graphics.Font;
 using SDL3;
-using Sampler = MoonWorks.Graphics.Sampler;
 using Texture = MoonWorks.Graphics.Texture;
 
 namespace Waddle;
 
 public static class AssetStore
 {
-    public delegate void ConfigurePipeline(ref GraphicsPipelineCreateInfo pipelineCreateInfo);
-    private record MaterialConfig(AssetRef Id, AssetRef VertexShader, AssetRef FragmentShader, ConfigurePipeline ConfigurePipeline);
-    
     private static GraphicsDevice _graphicsDevice = null!;
-    private static Window _window = null!;
     private static FileSystemWatcher _watcher = null!;
     
-    private static readonly Dictionary<AssetRef, TextureContainer> _textures = new();
-    private static readonly Dictionary<AssetRef, MeshContainer> _meshes = new();
-    private static readonly Dictionary<AssetRef, FontContainer> _fonts = new();
-    private static readonly Dictionary<AssetRef, ShaderContainer> _shaders = new();
-    private static readonly Dictionary<AssetRef, MaterialContainer> _materials = new();
-    private static readonly Dictionary<AssetRef, AtlasContainer> _atlases = new();
-    private static readonly Dictionary<SamplerType, SamplerContainer> _samplers = new();
+    private static readonly Dictionary<AssetRef, Texture> _textures = new();
+    private static readonly Dictionary<AssetRef, Font> _fonts = new();
+    private static readonly Dictionary<AssetRef, Shader> _shaders = new();
+    private static readonly Dictionary<AssetRef, Mesh> _meshes = new();
+    private static readonly Dictionary<AssetRef, Atlas> _atlases = new();
 
+    
     private static readonly List<string> _requiresReload = new();
-    private static readonly List<MaterialConfig> _materialConfigs = new();
-
-    public static FontMaterial FontMaterial { get; private set; } = null!;
-
-    public static void Init(GraphicsDevice graphicsDevice, Window window, string contentPath)
+    
+    public static void Init(GraphicsDevice graphicsDevice, string contentPath)
     {
         _graphicsDevice = graphicsDevice;
-        _window = window;
-
-        FontMaterial = new FontMaterial(window, graphicsDevice);
         
-        AddSamplers();
-
         if (Directory.Exists(contentPath + "Textures"))
         {
             var texturePaths = Directory.GetFiles(contentPath + "Textures", "*.png", SearchOption.AllDirectories);
@@ -99,47 +84,7 @@ public static class AssetStore
         };
         _watcher.EnableRaisingEvents = true;
     }
-
-    private static void AddSamplers()
-    {
-        _samplers.Add(SamplerType.LinearClamp, new SamplerContainer
-        {
-            Sampler = Sampler.Create(_graphicsDevice, SamplerCreateInfo.LinearClamp)
-        });
-        
-        _samplers.Add(SamplerType.LinearWrap, new SamplerContainer
-        {
-            Sampler = Sampler.Create(_graphicsDevice, SamplerCreateInfo.LinearWrap)
-        });
-        
-        _samplers.Add(SamplerType.AnisotropicClamp, new SamplerContainer
-        {
-            Sampler = Sampler.Create(_graphicsDevice, SamplerCreateInfo.AnisotropicClamp)
-        });
-        
-        _samplers.Add(SamplerType.AnisotropicWrap, new SamplerContainer
-        {
-            Sampler = Sampler.Create(_graphicsDevice, SamplerCreateInfo.AnisotropicWrap)
-        });
-        
-        _samplers.Add(SamplerType.PointClamp, new SamplerContainer
-        {
-            Sampler = Sampler.Create(_graphicsDevice, SamplerCreateInfo.PointClamp)
-        });
-        
-        _samplers.Add(SamplerType.PointWrap, new SamplerContainer
-        {
-            Sampler = Sampler.Create(_graphicsDevice, SamplerCreateInfo.PointWrap)
-        });
-    }
-
-    public static void RegisterMaterial<T>() where T : IMaterial
-    {
-        var materialConfig = new MaterialConfig(typeof(T).Name, T.VertexShader, T.FragmentShader, T.ConfigurePipeline);
-        _materialConfigs.Add(materialConfig);
-        LoadMaterial(materialConfig);
-    }
-
+    
     public static void CheckForReload()
     {
         if (_requiresReload.Count == 0) return;
@@ -148,7 +93,7 @@ public static class AssetStore
             var id = Path.GetFileNameWithoutExtension(path);
             if (_textures.TryGetValue(id, out var texture))
             {
-                texture.Texture.Dispose();
+                texture.Dispose();
                 LoadTexture(path);
             }
             else if (_meshes.TryGetValue(id, out var mesh))
@@ -159,18 +104,13 @@ public static class AssetStore
             }
             else if (_fonts.TryGetValue(id, out var font))
             {
-                font.Font.Dispose();
+                font.Dispose();
                 LoadFont(path);
             }
             else if (_shaders.TryGetValue(id, out var shader))
             {
-                shader.Shader.Dispose();
+                shader.Dispose();
                 LoadShader(path);
-                var materialConfig = _materialConfigs.Find(config => config.VertexShader == id || config.FragmentShader == id);
-                if (materialConfig != null)
-                {
-                    LoadMaterial(materialConfig);
-                }
             }
             else if (_atlases.TryGetValue(id, out var atlas))
             {
@@ -184,39 +124,29 @@ public static class AssetStore
         _requiresReload.Clear();
     }
 
-    public static ShaderContainer GetShader(AssetRef shaderId)
+    public static Shader GetShader(AssetRef shaderId)
     {
         return _shaders[shaderId];
     }
 
-    public static TextureContainer GetTexture(AssetRef textureId)
+    public static Texture GetTexture(AssetRef textureId)
     {
         return _textures[textureId];
     }
 
-    public static MeshContainer GetMesh(AssetRef meshId)
+    public static Mesh GetMesh(AssetRef meshId)
     {
         return _meshes[meshId];
     }
 
-    public static FontContainer GetFont(AssetRef fontId)
+    public static Font GetFont(AssetRef fontId)
     {
         return _fonts[fontId];
     }
 
-    public static AtlasContainer GetAtlas(AssetRef atlasId)
+    public static Atlas GetAtlas(AssetRef atlasId)
     {
         return _atlases[atlasId];
-    }
-    
-    public static MaterialContainer GetMaterial<T>() where T : IMaterial
-    {
-        return _materials[typeof(T).Name];
-    }
-
-    public static SamplerContainer GetSampler(SamplerType type)
-    {
-        return _samplers[type];
     }
 
     private static unsafe void LoadTexture(string path)
@@ -253,17 +183,7 @@ public static class AssetStore
         NativeMemory.Free(buffer);
         
         var id = Path.GetFileNameWithoutExtension(path);
-        if (!_textures.TryGetValue(id, out var container))
-        {
-            _textures.Add(id, new TextureContainer()
-            {
-                Texture = texture
-            });
-        }
-        else
-        {
-            container.Texture = texture;
-        }
+        _textures[id] = texture;
         var cmdBuf = _graphicsDevice.AcquireCommandBuffer();
         SDL.SDL_GenerateMipmapsForGPUTexture(cmdBuf.Handle, texture.Handle);
         _graphicsDevice.Submit(cmdBuf);
@@ -272,63 +192,54 @@ public static class AssetStore
     private static void LoadMesh(string path)
     {
         var meshes = GLTFLoader.Load(path);
+        var name = Path.GetFileNameWithoutExtension(path);
+        var vertexCount = 0;
+        var indexCount = 0;
         foreach (var meshData in meshes)
         {
-            var resourceUploader = new ResourceUploader(_graphicsDevice, 1024 * 1024);
-            var vertexBuffer = resourceUploader.CreateBuffer(meshData.Vertices.AsSpan(), BufferUsageFlags.Vertex);
-            var indexBuffer = resourceUploader.CreateBuffer(meshData.Indices.AsSpan(), BufferUsageFlags.Index);
-            vertexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Vertices";
-            indexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Indices";
-            resourceUploader.Upload();
-            resourceUploader.Dispose();
-            if (!_meshes.TryGetValue(meshData.Name, out var container))
-            {
-                _meshes.Add(meshData.Name, new MeshContainer()
-                {
-                    VertexBuffer = vertexBuffer,
-                    IndexBuffer = indexBuffer
-                });
-            }
-            else
-            {
-                container.VertexBuffer = vertexBuffer;
-                container.IndexBuffer = indexBuffer; 
-            }
+            vertexCount += meshData.Vertices.Length;
+            indexCount += meshData.Indices.Length;
         }
+        
+        var vertices = new VertexPositionNormalTexture[vertexCount];
+        var indices = new uint[indexCount];
+        
+        var vertexOffset = 0;
+        var indexOffset = 0;
+        foreach (var meshData in meshes)
+        {
+            meshData.Vertices.CopyTo(vertices.AsSpan(vertexOffset));
+            meshData.Indices.CopyTo(indices.AsSpan(indexOffset));
+            vertexOffset += meshData.Vertices.Length;
+            indexOffset += meshData.Indices.Length;
+        }
+        
+        var resourceUploader = new ResourceUploader(_graphicsDevice, 1024 * 1024);
+        var vertexBuffer = resourceUploader.CreateBuffer(vertices.AsSpan(), BufferUsageFlags.Vertex);
+        var indexBuffer = resourceUploader.CreateBuffer(indices.AsSpan(), BufferUsageFlags.Index);
+        vertexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Vertices";
+        indexBuffer.Name = Path.GetFileNameWithoutExtension(path) + " Indices";
+        resourceUploader.Upload();
+        resourceUploader.Dispose();
+        _meshes[name] = new Mesh
+        {
+            VertexBuffer = vertexBuffer,
+            IndexBuffer = indexBuffer
+        };
     }
 
     private static void LoadFont(string path)
     {
         var font = Font.Load(_graphicsDevice, path);
         var id = Path.GetFileNameWithoutExtension(path);
-        if (!_fonts.TryGetValue(id, out var container))
-        {
-            _fonts.Add(id, new FontContainer()
-            {
-                Font = font
-            });
-        }
-        else
-        {
-            container.Font = font;
-        }
+        _fonts[id] = font;
     }
 
     private static void LoadShader(string path)
     {
         var shader = ShaderLoader.LoadShader(path, _graphicsDevice);
         var id = Path.GetFileNameWithoutExtension(path);
-        if (!_shaders.TryGetValue(id, out var container))
-        {
-            _shaders.Add(id, new ShaderContainer()
-            {
-                Shader = shader
-            });
-        }
-        else
-        {
-            container.Shader = shader;
-        }
+        _shaders[id] = shader;
     }
 
     private static unsafe void LoadAtlas(string path)
@@ -378,68 +289,6 @@ public static class AssetStore
         
         var atlas = new Atlas(texture, images);
         var id = Path.GetFileNameWithoutExtension(path);
-        if (!_atlases.TryGetValue(id, out var container))
-        {
-            _atlases.Add(id, new AtlasContainer()
-            {
-                Atlas = atlas
-            });
-        }
-        else
-        {
-            container.Atlas = atlas;
-        }
-    }
-
-    private static void LoadMaterial(MaterialConfig config)
-    {
-        var vertexShader = _shaders[config.VertexShader];
-        var fragmentShader = _shaders[config.FragmentShader];
-        var pipelineCreateInfo = GetStandardGraphicsPipelineCreateInfo(
-            _window.SwapchainFormat,
-            vertexShader.Shader,
-            fragmentShader.Shader
-        );
-        config.ConfigurePipeline(ref pipelineCreateInfo);
-        
-        var pipeline = GraphicsPipeline.Create(_graphicsDevice, pipelineCreateInfo);
-        
-        var id = config.Id;
-        if (!_materials.TryGetValue(id, out var container))
-        {
-            _materials.Add(id, new MaterialContainer()
-            {
-                Pipeline = pipeline
-            });
-        }
-        else
-        {
-            container.Pipeline = pipeline;
-        }
-    }
-
-    private static GraphicsPipelineCreateInfo GetStandardGraphicsPipelineCreateInfo(
-        TextureFormat swapchainFormat, Shader vertexShader, Shader fragmentShader)
-    {
-        return new GraphicsPipelineCreateInfo
-        {
-            TargetInfo = new GraphicsPipelineTargetInfo
-            {
-                ColorTargetDescriptions = [
-                    new ColorTargetDescription
-                    {
-                        Format = swapchainFormat,
-                        BlendState = ColorTargetBlendState.Opaque
-                    }
-                ]
-            },
-            DepthStencilState = DepthStencilState.Disable,
-            MultisampleState = MultisampleState.None,
-            PrimitiveType = PrimitiveType.TriangleList,
-            RasterizerState = RasterizerState.CCW_CullNone,
-            VertexInputState = VertexInputState.Empty,
-            VertexShader = vertexShader,
-            FragmentShader = fragmentShader
-        };
+        _atlases[id] = atlas;
     }
 }

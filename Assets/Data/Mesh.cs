@@ -2,7 +2,7 @@
 
 namespace Waddle;
 
-public record MeshContainer
+public record Mesh
 {
     public required Buffer VertexBuffer { get; set; }
     public required Buffer IndexBuffer { get; set; }
